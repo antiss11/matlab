@@ -1,24 +1,49 @@
+% w_0 = input("Введите w_0: ");
+% w_m = input("Введите w_m: ");
+% w_n = input("Введите w_n: ");
+% w_max = input("Введите w_max: ");
+% M_0 = input("Введите M_0: ");
+% M_max = input("Введите M_max: ");
+% M_n = input("Введите M_n: ");
 w_0 = 104.7;
 w_m = 146.6;
-w_n = 199;
+w_n = 199.0;
 w_max = 214.7;
 M_0 = 422;
 M_max = 470;
 M_n = 384;
-k_w = 1.7;      % Подбирается экспериментально
-k_m = 1.1;      % Подбирается экспериментально
+results = [];
+w_col = 1;
+M_col = 2;
 step = 0.05;
+results = [];
+i = 1;
 f = fopen("data.dat", "w");
-a = getA(k_m, k_w);
-b = getB(k_m, k_w);
-c = getC(k_m, k_w);
-for w = w_0:step:w_n
-    M = getM(M_n, a, b, c, w, w_n);
-    fprintf(f, "%3.2f %3.2f\n", w, M);  
+fprintf(f, "w           M\n");
+% Расчитываем перегрузочную ветвь
+for w = w_0:step:w_m
+    M = calcOverloadM(M_0, M_max, w, w_m, w_0);
+    results(i, w_col) = w;
+    results(i, M_col) = M;
+    fprintf(f, "%4.2f     %4.2f\n", w, M);
+    i = i + 1;
 end
 
-for w = w_n:step:w_max
-    M = calcRegulatorM(M_n, w_max, w, w_n);
-    fprintf(f, "%3.2f %3.2f\n", w, M);
+% Расчитываем рабочую ветвь
+%for w = w_m:step:w_n
+for w = w_m:step:w_n
+    M = calcWorkM(M_max, M_n, w, w_m);
+    results(i, w_col) = w;
+    results(i, M_col) = M;
+    fprintf(f, "%4.2f     %4.2f\n", w, M);
+    i = i + 1;
 end
-fclose(f);
+% Расчитываем регуляторную ветвь
+%for w = w_n:step:w_max
+for w = w_n:step:w_max
+    M = calcRegulatorM(M_n, w, w_max, w_n);
+    results(i, w_col) = w;
+    results(i, M_col) = M;
+    fprintf(f, "%4.2f     %4.2f\n", w, M);
+    i = i + 1;
+end
